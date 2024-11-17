@@ -13,10 +13,6 @@ from datasets import *
 from utils import *
 from losses import *
 
-import sys
-print('all running')
-sys.exit()
-
 def main(args):
     # Set model/output directory name
     MODEL_NAME = args.dataset
@@ -49,9 +45,11 @@ def main(args):
     if args.dataset == 'nih-cxr-lt':
         dataset = NIH_CXR_Dataset
         N_CLASSES = 20
-    else:
+    elif args.dataset == 'mimic-cxr-lt':
         dataset = MIMIC_CXR_Dataset
         N_CLASSES = 19
+    elif args.dataset == 'vin-cxr-lt':
+        dataset = None
 
     train_dataset = dataset(data_dir=args.data_dir, label_dir=args.label_dir, split='train')
     val_dataset = dataset(data_dir=args.data_dir, label_dir=args.label_dir, split='balanced-val')
@@ -164,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', default='/ssd1/greg/NIH_CXR/images', type=str)
     parser.add_argument('--label_dir', default='labels/', type=str)
     parser.add_argument('--out_dir', default='results/', type=str, help="path to directory where results and model weights will be saved")
-    parser.add_argument('--dataset', required=True, type=str, choices=['nih-lt', 'mimic-cxr-lt'])
+    parser.add_argument('--dataset', required=True, type=str, choices=['nih-cxr-lt', 'mimic-cxr-lt'])
     parser.add_argument('--loss', default='ce', type=str, choices=['ce', 'focal', 'ldam'])
     parser.add_argument('--drw', action='store_true', default=False)
     parser.add_argument('--rw_method', default='', choices=['', 'sklearn', 'cb'])

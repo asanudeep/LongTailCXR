@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torchvision
+import torchxrayvision as xrv
 
 class NIH_CXR_Dataset(torch.utils.data.Dataset):
     def __init__(self, data_dir, label_dir, split):
@@ -144,3 +145,50 @@ class ComboLoader(object):
     # Customize the behavior of combining batches here.
     def combine_batch(self, batches):
         return batches
+
+class Vin_CXR_DATASET(torch.utils.data.Dataset):
+    def __init__(self, data_dir, label_dir, split):
+        """
+        Custom wrapper for VinBrainDataset to fit the specified structure.
+
+        Args:
+        - data_dir (str): Path to the directory containing image data.
+        - label_dir (str): Path to the directory containing label CSV files.
+        - split (str): Dataset split (e.g., 'train', 'test', or 'val').
+        """
+        self.split = split
+        
+        if self.split == 'train':
+            self.transform = torchvision.transforms.Compose([
+                torchvision.transforms.ToPILImage(),
+                torchvision.transforms.RandomHorizontalFlip(),
+                torchvision.transforms.RandomRotation(15),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225) )
+            ])
+        else:
+            self.transform = torchvision.transforms.Compose([
+                torchvision.transforms.ToPILImage(),
+                torchvision.transforms.ToTensor(),
+                torchvision.transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225) )
+            ])
+        
+        # edit this
+        #####################
+        self.label_dir = os.path.join(label_dir, f'{split}.csv')
+        self.dataset = xrv.datasets.VinBrain_Dataset(imgpath=data_dir, csvpath=self.label_dir)
+        #####################
+
+        self.CLASSES = self.dataset.pathologies
+
+        self.label_df = pd.read_csv(os.path.join(label_dir, f'mimic-lt_single-label_{split}.csv'))
+
+        self.cls_num_list = self.label_df[self.CLASSES].sum(0).values.tolist()
+
+    def __len__(self):
+        return self.dataset.__len__()
+
+    def __getitem__(self, idx):
+        image = self.dataset.__getitem__(idx)
+        return image
+        
