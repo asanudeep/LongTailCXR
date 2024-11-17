@@ -13,6 +13,10 @@ from datasets import *
 from utils import *
 from losses import *
 
+import sys
+print('all running')
+sys.exit()
+
 def main(args):
     # Set model/output directory name
     MODEL_NAME = args.dataset
